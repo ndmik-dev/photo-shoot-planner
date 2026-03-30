@@ -1,0 +1,36 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+dist/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Coverage and profiling
+coverage.out
+coverage.html
+*.coverprofile
+cpu.prof
+mem.prof
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDEs and editors
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+
+# Temporary files
+tmp/
