@@ -24,7 +24,7 @@ func main() {
 
 	log.Println("database connected")
 
-	application := app.New(cfg)
+	application := app.New(cfg, pool)
 
 	log.Printf("starting server on :%s", cfg.AppPort)
 

@@ -5,20 +5,29 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/ndmik-dev/photo-shoot-planner/internal/config"
-	router "github.com/ndmik-dev/photo-shoot-planner/internal/transport/http"
+	"github.com/ndmik-dev/photo-shoot-planner/internal/platform/dbgen"
+	"github.com/ndmik-dev/photo-shoot-planner/internal/shoot"
+	httptransport "github.com/ndmik-dev/photo-shoot-planner/internal/transport/http"
 )
 
 type App struct {
 	server *http.Server
 }
 
-func New(cfg config.Config) *App {
-	handler := router.NewRouter()
+func New(cfg config.Config, pool *pgxpool.Pool) *App {
+	queries := dbgen.New(pool)
+
+	shootRepo := shoot.NewRepository(queries)
+	shootService := shoot.NewService(shootRepo)
+	shootHandler := shoot.NewHandler(shootService)
+
+	router := httptransport.NewRouter(shootHandler)
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.AppPort,
-		Handler:           handler,
+		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

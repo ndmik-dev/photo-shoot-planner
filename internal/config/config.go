@@ -19,7 +19,7 @@ func Load() Config {
 	cfg := Config{
 		AppPort:    getEnv("APP_PORT", "8080"),
 		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
+		DBPort:     getEnv("DB_PORT", "5433"),
 		DBName:     getEnv("DB_NAME", "photo_planner"),
 		DBUser:     getEnv("DB_USER", "postgres"),
 		DBPassword: getEnv("DB_PASSWORD", "postgres"),
@@ -29,7 +29,7 @@ func Load() Config {
 	if cfg.DBHost == "" || cfg.DBPort == "" || cfg.DBName == "" || cfg.DBUser == "" {
 		panic("missing required database config")
 	}
-	
+
 	return cfg
 }
 
