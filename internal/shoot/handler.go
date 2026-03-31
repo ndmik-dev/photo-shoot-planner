@@ -69,7 +69,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := make([]ShootResponse, len(items))
+	resp := make([]ShootResponse, 0, len(items))
 	for _, item := range items {
 		resp = append(resp, ToResponse(item))
 	}
