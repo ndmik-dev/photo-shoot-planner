@@ -2,9 +2,11 @@ package shoot
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -35,6 +37,26 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	shoot, err := h.svc.Create(r.Context(), req)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "internal_error", "failed to create shoot")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, ToResponse(shoot))
+}
+
+func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, err := parseIDParam(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_id", "invalid id")
+		return
+	}
+
+	shoot, err := h.svc.GetByID(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			writeError(w, http.StatusNotFound, "not_found", "shoot not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "failed to get shoot")
 		return
 	}
 
@@ -79,6 +101,87 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		"limit":  limit,
 		"offset": offset,
 	})
+}
+
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := parseIDParam(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_id", "invalid id")
+		return
+	}
+
+	var req UpdateShootRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_json", "invalid request body")
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		writeError(w, http.StatusBadRequest, "validation_error", err.Error())
+		return
+	}
+
+	shoot, err := h.svc.Update(r.Context(), id, req)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			writeError(w, http.StatusNotFound, "not_found", "shoot not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "failed to update shoot")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, ToResponse(shoot))
+}
+
+func (h *Handler) PatchStatus(w http.ResponseWriter, r *http.Request) {
+	id, err := parseIDParam(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_id", "invalid id")
+		return
+	}
+
+	var req PathShootRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_json", "invalid request body")
+		return
+	}
+
+	if err := h.validator.Struct(req); err != nil {
+		writeError(w, http.StatusBadRequest, "validation_error", err.Error())
+		return
+	}
+
+	shoot, err := h.svc.UpdateStatus(r.Context(), id, req.Status)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			writeError(w, http.StatusNotFound, "not_found", "shoot not found")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "internal_error", "failed to patch shoot status")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, ToResponse(shoot))
+}
+
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := parseIDParam(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid_id", "invalid id")
+		return
+	}
+
+	if err := h.svc.Delete(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, "internal_error", "failed to delete shoot")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func parseIDParam(r *http.Request) (int64, error) {
+	return strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

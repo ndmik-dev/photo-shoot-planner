@@ -20,6 +20,10 @@ func NewRouter(shootHandler *shoot.Handler) http.Handler {
 	r.Route("/api/v1/shoots", func(r chi.Router) {
 		r.Post("/", shootHandler.Create)
 		r.Get("/", shootHandler.List)
+		r.Get("/{id}", shootHandler.GetByID)
+		r.Put("/{id}", shootHandler.Update)
+		r.Patch("/{id}/status", shootHandler.PatchStatus)
+		r.Delete("{id}", shootHandler.Delete)
 	})
 
 	return r
