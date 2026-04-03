@@ -23,7 +23,7 @@ func NewRouter(shootHandler *shoot.Handler) http.Handler {
 		r.Get("/{id}", shootHandler.GetByID)
 		r.Put("/{id}", shootHandler.Update)
 		r.Patch("/{id}/status", shootHandler.PatchStatus)
-		r.Delete("{id}", shootHandler.Delete)
+		r.Delete("/{id}", shootHandler.Delete)
 	})
 
 	return r
